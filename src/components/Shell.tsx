@@ -2,6 +2,7 @@ import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { Bell, LogOut, type LucideIcon } from "lucide-react";
 import { currentUser, markNotificationsRead, signOut, usePact } from "@/lib/store";
 import { Button } from "@/components/ui/button";
+import { BrandLogo } from "@/components/BrandLogo";
 import { cn } from "@/lib/utils";
 
 export interface NavItem {
@@ -28,11 +29,8 @@ export const Shell = ({
     <div className="min-h-screen bg-background md:flex">
       <aside className="hidden w-64 shrink-0 flex-col justify-between bg-sidebar p-5 text-sidebar-foreground md:flex">
         <div>
-          <NavLink to="/" className="mb-8 flex items-center gap-2">
-            <span className="grid h-9 w-9 place-items-center rounded-xl bg-sidebar-primary font-display text-lg font-semibold text-sidebar-primary-foreground">
-              P
-            </span>
-            <span className="font-display text-xl">Pact</span>
+          <NavLink to="/" className="mb-8 block">
+            <BrandLogo className="h-16 w-auto brightness-0 invert" />
           </NavLink>
           <p className="mb-3 px-2 text-xs uppercase tracking-wider text-sidebar-foreground/50">
             {title}
@@ -77,12 +75,9 @@ export const Shell = ({
 
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-20 flex items-center justify-between border-b bg-background/90 px-4 py-3 backdrop-blur md:px-8">
-          <div className="flex items-center gap-2 md:hidden">
-            <span className="grid h-8 w-8 place-items-center rounded-lg bg-primary font-display text-primary-foreground">
-              P
-            </span>
-            <span className="font-display text-lg">Pact</span>
-          </div>
+          <NavLink to="/" className="md:hidden">
+            <BrandLogo className="h-10 w-auto" />
+          </NavLink>
           <p className="hidden text-sm text-muted-foreground md:block">
             Hi {user?.name?.split(" ")[0]} — {title}
           </p>

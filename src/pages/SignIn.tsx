@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { BrandLogo } from "@/components/BrandLogo";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { currentUser, getSnapshot, resetDemoData, signIn } from "@/lib/store";
@@ -26,11 +27,8 @@ const SignIn = () => {
 
   return (
     <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-5 py-10">
-      <Link to="/" className="mb-8 flex items-center gap-2">
-        <span className="grid h-9 w-9 place-items-center rounded-xl bg-primary font-display text-lg text-primary-foreground">
-          P
-        </span>
-        <span className="font-display text-xl">Pact</span>
+      <Link to="/" className="mb-8">
+        <BrandLogo className="h-16 w-auto" />
       </Link>
 
       <h1 className="font-display text-2xl">Sign in</h1>

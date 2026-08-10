@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Building2, Landmark, FileCheck2, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { BrandLogo } from "@/components/BrandLogo";
 import { ComplianceNote } from "@/components/ComplianceNote";
 import { MockBadge } from "@/components/MockBadge";
 import { MadeWithDyad } from "@/components/made-with-dyad";
@@ -26,12 +27,9 @@ const paths = [
 const Index = () => (
   <div className="min-h-screen">
     <header className="mx-auto flex max-w-5xl items-center justify-between px-5 py-5">
-      <div className="flex items-center gap-2">
-        <span className="grid h-9 w-9 place-items-center rounded-xl bg-primary font-display text-lg text-primary-foreground">
-          P
-        </span>
-        <span className="font-display text-xl">Pact</span>
-      </div>
+      <Link to="/" aria-label="Pact home">
+        <BrandLogo className="h-14 w-auto" />
+      </Link>
       <Button asChild variant="ghost" className="rounded-xl">
         <Link to="/signin">Sign in</Link>
       </Button>
