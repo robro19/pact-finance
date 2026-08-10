@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, CircleCheck, Home, LogOut, Plus, ShieldCheck } from "lucide-react";
+import { ArrowRight, CircleCheck, Home, LogOut, Plus, Settings, ShieldCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { BrandLogo } from "@/components/brand-logo";
@@ -90,13 +90,22 @@ export default function DashboardPage() {
           <Link href="/" aria-label="Pact home">
             <BrandLogo className="h-11 w-28" />
           </Link>
-          <button
-            onClick={handleSignOut}
-            className="inline-flex items-center gap-2 rounded-full border border-cream-300 bg-white px-4 py-2.5 text-sm font-bold text-ink-700 transition hover:border-teal-300 hover:text-teal-700"
-          >
-            <LogOut size={16} />
-            Sign out
-          </button>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Link
+              href="/settings"
+              className="inline-flex items-center gap-2 rounded-full border border-cream-300 bg-white px-4 py-2.5 text-sm font-bold text-ink-700 transition hover:border-teal-300 hover:text-teal-700"
+            >
+              <Settings size={16} />
+              <span className="hidden sm:inline">Settings</span>
+            </Link>
+            <button
+              onClick={handleSignOut}
+              className="inline-flex items-center gap-2 rounded-full border border-cream-300 bg-white px-4 py-2.5 text-sm font-bold text-ink-700 transition hover:border-teal-300 hover:text-teal-700"
+            >
+              <LogOut size={16} />
+              <span className="hidden sm:inline">Sign out</span>
+            </button>
+          </div>
         </nav>
       </header>
 
