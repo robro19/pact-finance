@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 import { ArrowRight, Loader2, LockKeyhole, Mail, UserRound } from "lucide-react";
 import { toast } from "sonner";
@@ -17,6 +17,7 @@ type AuthFormProps = {
 
 export function AuthForm({ mode, role = "renter" }: AuthFormProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const isSignup = mode === "signup";
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -32,10 +33,8 @@ export function AuthForm({ mode, role = "renter" }: AuthFormProps) {
           email,
           password,
           options: {
-            data: {
-              full_name: fullName,
-              role,
-            },
+            emailRedirectTo: `${window.location.origin}/login`,
+            data: { full_name: fullName, role },
           },
         })
       : await supabase.auth.signInWithPassword({ email, password });
@@ -62,8 +61,18 @@ export function AuthForm({ mode, role = "renter" }: AuthFormProps) {
             .maybeSingle()
         ).data?.role ?? result.data.user?.user_metadata.role ?? "renter";
 
+    const requestedPath = searchParams.get("next");
+    const destination =
+      requestedPath &&
+      requestedPath.startsWith("/") &&
+      !requestedPath.startsWith("//")
+        ? requestedPath
+        : accountRole === "landlord"
+          ? "/landlord-dashboard"
+          : "/dashboard";
+
     toast.success(isSignup ? "Your Pact account is ready." : "Welcome back.");
-    router.push(accountRole === "landlord" ? "/landlord-dashboard" : "/dashboard");
+    router.push(destination);
     router.refresh();
   }
 

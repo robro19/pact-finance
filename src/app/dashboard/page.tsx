@@ -53,28 +53,35 @@ export default function DashboardPage() {
   const [showPaymentForm, setShowPaymentForm] = useState(false);
 
   const loadDashboardData = useCallback(async (tenantId: string) => {
-    const [leasesResult, paymentsResult] = await Promise.all([
-      supabase
-        .from("leases")
-        .select("id, address, monthly_rent_amount, start_date, status")
-        .eq("tenant_id", tenantId)
-        .order("created_at", { ascending: false }),
-      supabase
-        .from("payment_records")
-        .select("id, lease_id, month, verification_method, status, amount")
-        .order("month", { ascending: false }),
-    ]);
+    const leasesResult = await supabase
+      .from("leases")
+      .select("id, address, monthly_rent_amount, start_date, status")
+      .eq("tenant_id", tenantId)
+      .order("created_at", { ascending: false });
 
     if (leasesResult.error) {
       toast.error("We couldn’t load your lease details.");
-    } else {
-      setLeases(leasesResult.data ?? []);
+      return;
     }
 
-    if (paymentsResult.error) {
+    const loadedLeases = leasesResult.data ?? [];
+    setLeases(loadedLeases);
+
+    if (loadedLeases.length === 0) {
+      setPayments([]);
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("payment_records")
+      .select("id, lease_id, month, verification_method, status, amount")
+      .in("lease_id", loadedLeases.map((lease) => lease.id))
+      .order("month", { ascending: false });
+
+    if (error) {
       toast.error("We couldn’t load your payment history.");
     } else {
-      setPayments(paymentsResult.data ?? []);
+      setPayments(data ?? []);
     }
   }, []);
 

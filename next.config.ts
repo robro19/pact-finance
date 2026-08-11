@@ -2,6 +2,9 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   outputFileTracingRoot: process.cwd(),
+  images: {
+    unoptimized: true,
+  },
   webpack: (config) => {
     if (process.env.NODE_ENV === "development") {
       config.module.rules.push({
