@@ -1,10 +1,16 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { Suspense } from "react";
 import { AuthForm } from "@/components/auth-form";
 import { BrandLogo } from "@/components/brand-logo";
 
-export default function LoginPage() {
+type LoginPageProps = {
+  searchParams: Promise<{ role?: string }>;
+};
+
+export default async function LoginPage({ searchParams }: LoginPageProps) {
+  const params = await searchParams;
+  const role = params.role === "landlord" ? "landlord" : "renter";
+
   return (
     <main className="flex min-h-screen bg-cream-50">
       <section className="hidden flex-1 flex-col justify-between bg-teal-900 p-10 text-white lg:flex">
@@ -32,15 +38,7 @@ export default function LoginPage() {
           >
             <ArrowLeft size={16} /> Back to Pact
           </Link>
-          <Suspense
-            fallback={
-              <div className="w-full max-w-md text-sm font-bold text-teal-700">
-                Loading your sign-in form...
-              </div>
-            }
-          >
-            <AuthForm mode="login" />
-          </Suspense>
+          <AuthForm mode="login" role={role} />
         </div>
       </section>
     </main>

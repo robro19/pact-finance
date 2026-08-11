@@ -1,10 +1,16 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { Suspense } from "react";
-import { BrandLogo } from "@/components/brand-logo";
 import { AuthForm } from "@/components/auth-form";
+import { BrandLogo } from "@/components/brand-logo";
 
-export default function SignupPage() {
+type SignupPageProps = {
+  searchParams: Promise<{ role?: string }>;
+};
+
+export default async function SignupPage({ searchParams }: SignupPageProps) {
+  const params = await searchParams;
+  const role = params.role === "landlord" ? "landlord" : "renter";
+
   return (
     <main className="flex min-h-screen bg-cream-50">
       <section className="hidden flex-1 flex-col justify-between bg-coral-100 p-10 text-ink-900 lg:flex">
@@ -33,15 +39,7 @@ export default function SignupPage() {
           >
             <ArrowLeft size={16} /> Back to Pact
           </Link>
-          <Suspense
-            fallback={
-              <div className="w-full max-w-md text-sm font-bold text-teal-700">
-                Loading your signup form...
-              </div>
-            }
-          >
-            <AuthForm mode="signup" />
-          </Suspense>
+          <AuthForm mode="signup" role={role} />
         </div>
       </section>
     </main>

@@ -1,18 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 import { ArrowRight, Loader2, LockKeyhole, Mail, UserRound } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
 type AuthMode = "login" | "signup";
+type AuthRole = "renter" | "landlord";
 
-export function AuthForm({ mode }: { mode: AuthMode }) {
+type AuthFormProps = {
+  mode: AuthMode;
+  role?: AuthRole;
+};
+
+export function AuthForm({ mode, role = "renter" }: AuthFormProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const role = searchParams.get("role") === "landlord" ? "landlord" : "renter";
   const isSignup = mode === "signup";
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -132,7 +136,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
 
         {isSignup && (
           <div className="rounded-2xl bg-teal-50 px-4 py-3 text-sm text-teal-900">
-            Creating an account as a{" "}
+            Creating an account as{" "}
             <strong>{role === "landlord" ? "landlord" : "renter"}</strong>.
           </div>
         )}
