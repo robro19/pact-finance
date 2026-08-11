@@ -15,6 +15,16 @@ type AuthFormProps = {
   role?: AuthRole;
 };
 
+function getSiteOrigin() {
+  const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+
+  if (configuredSiteUrl) {
+    return configuredSiteUrl.replace(/\/+$/, "");
+  }
+
+  return window.location.origin;
+}
+
 export function AuthForm({ mode, role = "renter" }: AuthFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -33,7 +43,7 @@ export function AuthForm({ mode, role = "renter" }: AuthFormProps) {
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/login`,
+            emailRedirectTo: `${getSiteOrigin()}/login`,
             data: { full_name: fullName, role },
           },
         })
