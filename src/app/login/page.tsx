@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { ArrowLeft } from "lucide-react";
 import { AuthForm } from "@/components/auth-form";
 import { BrandLogo } from "@/components/brand-logo";
@@ -31,7 +32,15 @@ export default function LoginPage() {
           >
             <ArrowLeft size={16} /> Back to Pact
           </Link>
-          <AuthForm mode="login" />
+          <Suspense
+            fallback={
+              <div className="flex min-h-[360px] w-full max-w-md items-center justify-center text-sm font-bold text-teal-700">
+                Loading login...
+              </div>
+            }
+          >
+            <AuthForm mode="login" />
+          </Suspense>
         </div>
       </section>
     </main>
