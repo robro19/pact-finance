@@ -48,8 +48,18 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
       return;
     }
 
+    const accountRole = isSignup
+      ? role
+      : (
+          await supabase
+            .from("profiles")
+            .select("role")
+            .eq("id", result.data.user?.id ?? "")
+            .maybeSingle()
+        ).data?.role ?? result.data.user?.user_metadata.role ?? "renter";
+
     toast.success(isSignup ? "Your Pact account is ready." : "Welcome back.");
-    router.push("/dashboard");
+    router.push(accountRole === "landlord" ? "/landlord-dashboard" : "/dashboard");
     router.refresh();
   }
 

@@ -22,15 +22,17 @@ const verificationSchema = z
       .min(1, "Enter the payment amount.")
       .refine((value) => Number(value) > 0, "Amount must be greater than zero."),
     method: z.enum(["bank", "landlord", "manual"]),
+    landlordEmail: z.string().email("Enter a valid landlord email.").optional().or(z.literal("")),
     proofUrl: z.string().url("Enter a valid proof link.").optional().or(z.literal("")),
   })
-  .refine(
-    (values) => values.method !== "manual" || Boolean(values.proofUrl),
-    {
-      message: "Add a link to your payment proof.",
-      path: ["proofUrl"],
-    },
-  );
+  .refine((values) => values.method !== "landlord" || Boolean(values.landlordEmail), {
+    message: "Add your landlord’s email address.",
+    path: ["landlordEmail"],
+  })
+  .refine((values) => values.method !== "manual" || Boolean(values.proofUrl), {
+    message: "Add a link to your payment proof.",
+    path: ["proofUrl"],
+  });
 
 type VerificationFormValues = z.infer<typeof verificationSchema>;
 
@@ -78,6 +80,7 @@ export function PaymentVerificationForm({
       month: new Date().toISOString().slice(0, 7),
       amount: leases[0]?.monthly_rent_amount?.toString() ?? "",
       method: "bank",
+      landlordEmail: "",
       proofUrl: "",
     },
   });
@@ -90,7 +93,7 @@ export function PaymentVerificationForm({
       return;
     }
 
-    const { error } = await supabase.from("payment_records").insert({
+    const { error: paymentError } = await supabase.from("payment_records").insert({
       lease_id: values.leaseId,
       month: `${values.month}-01`,
       verification_method: values.method,
@@ -99,12 +102,29 @@ export function PaymentVerificationForm({
       proof_url: values.proofUrl || null,
     });
 
-    if (error) {
+    if (paymentError) {
       toast.error("We couldn’t submit this payment. Please try again.");
       return;
     }
 
-    toast.success("Payment submitted for verification.");
+    if (values.method === "landlord" && values.landlordEmail) {
+      const { error: inviteError } = await supabase.from("landlord_invites").insert({
+        lease_id: values.leaseId,
+        invited_email: values.landlordEmail.trim().toLowerCase(),
+        status: "pending",
+      });
+
+      if (inviteError) {
+        toast.error("Payment submitted, but we couldn’t create the landlord invitation.");
+        onCreated();
+        return;
+      }
+
+      toast.success("Payment submitted and landlord invitation created.");
+    } else {
+      toast.success("Payment submitted for verification.");
+    }
+
     onCreated();
   }
 
@@ -190,6 +210,24 @@ export function PaymentVerificationForm({
         </div>
       </fieldset>
 
+      {selectedMethod === "landlord" && (
+        <div>
+          <label htmlFor="landlordEmail" className="mb-2 block text-sm font-bold text-ink-800">
+            Landlord email
+          </label>
+          <input
+            id="landlordEmail"
+            type="email"
+            {...register("landlordEmail")}
+            placeholder="landlord@example.com"
+            className="w-full rounded-2xl border border-cream-300 bg-white px-4 py-3.5 text-ink-900 outline-none transition placeholder:text-ink-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-100"
+          />
+          {errors.landlordEmail && (
+            <p className="mt-2 text-sm text-coral-600">{errors.landlordEmail.message}</p>
+          )}
+        </div>
+      )}
+
       {selectedMethod === "manual" && (
         <div>
           <label htmlFor="proofUrl" className="mb-2 block text-sm font-bold text-ink-800">
@@ -200,7 +238,7 @@ export function PaymentVerificationForm({
             type="url"
             {...register("proofUrl")}
             placeholder="https://example.com/your-receipt"
-            className="w-full rounded-2xl border border-cream-300 bg-white px-4 py-3.5 text-ink-900 outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-100"
+            className="w-full rounded-2xl border border-cream-300 bg-white px-4 py-3.5 text-ink-900 outline-none transition placeholder:text-ink-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-100"
           />
           {errors.proofUrl && <p className="mt-2 text-sm text-coral-600">{errors.proofUrl.message}</p>}
         </div>
