@@ -59,6 +59,52 @@ export default {
   				'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
   				border: 'hsl(var(--sidebar-border))',
   				ring: 'hsl(var(--sidebar-ring))'
+  			},
+  			cream: {
+  				50: '#FBF8F1',
+  				100: '#F6F0E1',
+  				200: '#EEE4CC',
+  				300: '#E3D5AF',
+  				400: '#D6C48F',
+  				500: '#C7B06C'
+  			},
+  			ink: {
+  				400: '#96A099',
+  				500: '#77827C',
+  				600: '#5B6660',
+  				700: '#3F4A42',
+  				800: '#333D36',
+  				900: '#21372A'
+  			},
+  			teal: {
+  				50: '#EAF7F5',
+  				100: '#CBEDE7',
+  				200: '#9EDBD1',
+  				300: '#6EC6B7',
+  				400: '#3CB09B',
+  				500: '#1FA491',
+  				600: '#159A8C',
+  				700: '#0F7A6F',
+  				800: '#0C5F56',
+  				900: '#0B3B35'
+  			},
+  			coral: {
+  				50: '#FBEAE5',
+  				100: '#F7DCD4',
+  				200: '#F0C4B8',
+  				300: '#E8A796',
+  				400: '#E08A73',
+  				500: '#DC6952',
+  				600: '#C65A45',
+  				700: '#A8462F'
+  			},
+  			mustard: {
+  				50: '#FEF8EA',
+  				100: '#FDF0D2',
+  				200: '#FBE6B0',
+  				300: '#F7D687',
+  				400: '#F4CB6C',
+  				500: '#F2C450'
   			}
   		},
   		borderRadius: {
