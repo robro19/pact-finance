@@ -100,7 +100,12 @@ export function LandlordDashboard() {
     }
 
     setInvites(loadedInvites);
-    setLeases([...loadedLeases, ...invitedLeaseData.filter((item) => !loadedLeases.some((lease) => lease.id === item.id))]);
+    setLeases([
+      ...loadedLeases,
+      ...invitedLeaseData.filter(
+        (item) => !loadedLeases.some((lease) => lease.id === item.id),
+      ),
+    ]);
   }, []);
 
   useEffect(() => {
@@ -125,24 +130,12 @@ export function LandlordDashboard() {
   async function acceptInvite(invite: Invite) {
     setIsWorking(invite.id);
 
-    const { error: leaseError } = await supabase
-      .from("leases")
-      .update({ landlord_id: userId })
-      .eq("id", invite.lease_id);
+    const { error } = await supabase.rpc("accept_landlord_invite", {
+      invite_id: invite.id,
+    });
 
-    if (leaseError) {
-      toast.error("We couldn’t accept this invitation.");
-      setIsWorking("");
-      return;
-    }
-
-    const { error: inviteError } = await supabase
-      .from("landlord_invites")
-      .update({ status: "accepted" })
-      .eq("id", invite.id);
-
-    if (inviteError) {
-      toast.error("The lease was linked, but the invitation status could not be updated.");
+    if (error) {
+      toast.error(error.message || "We couldn’t accept this invitation.");
       setIsWorking("");
       return;
     }
