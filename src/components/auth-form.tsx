@@ -39,6 +39,8 @@ export function AuthForm({ mode, role = "renter" }: AuthFormProps) {
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+  const [needsConfirmation, setNeedsConfirmation] = useState(false);
 
   function getDestination(accountRole: string) {
     const requestedPath = searchParams.get("next");
@@ -91,20 +93,52 @@ export function AuthForm({ mode, role = "renter" }: AuthFormProps) {
     }
   }
 
+  async function handleResendVerification() {
+    const normalizedEmail = email.trim();
+
+    if (!normalizedEmail) {
+      toast.error("Enter your email address first.");
+      return;
+    }
+
+    setIsResending(true);
+
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email: normalizedEmail,
+      options: {
+        emailRedirectTo: `${getSiteOrigin()}/login`,
+      },
+    });
+
+    setIsResending(false);
+
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+
+    setNeedsConfirmation(true);
+    toast.success("A new verification email has been sent.");
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsSubmitting(true);
 
     const result = isSignup
       ? await supabase.auth.signUp({
-          email,
+          email: email.trim(),
           password,
           options: {
             emailRedirectTo: `${getSiteOrigin()}/login`,
             data: { full_name: fullName, role },
           },
         })
-      : await supabase.auth.signInWithPassword({ email, password });
+      : await supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password,
+        });
 
     setIsSubmitting(false);
 
@@ -114,6 +148,7 @@ export function AuthForm({ mode, role = "renter" }: AuthFormProps) {
     }
 
     if (isSignup && !result.data.session) {
+      setNeedsConfirmation(true);
       toast.success("Check your email to confirm your Pact account.");
       return;
     }
@@ -155,7 +190,7 @@ export function AuthForm({ mode, role = "renter" }: AuthFormProps) {
       <button
         type="button"
         onClick={handleGoogleSignIn}
-        disabled={isGoogleSubmitting || isSubmitting}
+        disabled={isGoogleSubmitting || isSubmitting || isResending}
         className="inline-flex w-full items-center justify-center gap-3 rounded-full border border-cream-300 bg-white px-5 py-3.5 font-bold text-ink-800 transition hover:border-teal-300 hover:text-teal-700 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {isGoogleSubmitting ? (
@@ -227,9 +262,18 @@ export function AuthForm({ mode, role = "renter" }: AuthFormProps) {
           </div>
         )}
 
+        {needsConfirmation && (
+          <div className="rounded-2xl border border-mustard-200 bg-mustard-50 px-4 py-4 text-sm leading-6 text-ink-800">
+            <p className="font-bold">Check your inbox to verify your email.</p>
+            <p className="mt-1">
+              Didn’t receive it? Use the button below to send a fresh verification link.
+            </p>
+          </div>
+        )}
+
         <button
           type="submit"
-          disabled={isSubmitting || isGoogleSubmitting}
+          disabled={isSubmitting || isGoogleSubmitting || isResending}
           className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-full bg-teal-600 px-5 py-3.5 font-bold text-white shadow-[0_8px_24px_rgba(21,154,140,0.2)] transition hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isSubmitting && <Loader2 size={18} className="animate-spin" />}
@@ -237,6 +281,16 @@ export function AuthForm({ mode, role = "renter" }: AuthFormProps) {
           {!isSubmitting && <ArrowRight size={18} />}
         </button>
       </form>
+
+      <button
+        type="button"
+        onClick={handleResendVerification}
+        disabled={isResending || isSubmitting || isGoogleSubmitting}
+        className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full border border-teal-200 bg-teal-50 px-5 py-3 font-bold text-teal-800 transition hover:border-teal-400 hover:bg-teal-100 disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        {isResending && <Loader2 size={17} className="animate-spin" />}
+        {isResending ? "Sending verification email..." : "Resend verification email"}
+      </button>
 
       <p className="mt-7 text-center text-sm text-ink-600">
         {isSignup ? "Already have an account?" : "New to Pact?"}{" "}
