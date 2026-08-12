@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "npm run build:cloudflare",
     "build:next": "next build",
-    "build:cloudflare": "node scripts/ensure-open-next-config.mjs && opennextjs-cloudflare build",
+    "build:cloudflare": "node scripts/ensure-open-next-config.mjs && node scripts/build-cloudflare.mjs",
     "preview:cloudflare": "opennextjs-cloudflare preview",
     "deploy": "npx --yes wrangler@4.20.0 deploy",
     "deploy:cloudflare": "npm run build:cloudflare && npm run deploy",

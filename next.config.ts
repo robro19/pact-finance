@@ -6,7 +6,10 @@ const nextConfig: NextConfig = {
     unoptimized: true,
   },
   webpack: (config) => {
-    if (process.env.NODE_ENV === "development") {
+    if (
+      process.env.NODE_ENV === "development" &&
+      process.env.DYAD_COMPONENT_TAGGER === "true"
+    ) {
       config.module.rules.push({
         test: /\.(jsx|tsx)$/,
         exclude: /node_modules/,
