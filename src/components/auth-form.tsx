@@ -3,7 +3,14 @@
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
-import { ArrowRight, Loader2, LockKeyhole, Mail, UserRound } from "lucide-react";
+import {
+  ArrowRight,
+  Chrome,
+  Loader2,
+  LockKeyhole,
+  Mail,
+  UserRound,
+} from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -18,11 +25,9 @@ type AuthFormProps = {
 function getSiteOrigin() {
   const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
 
-  if (configuredSiteUrl) {
-    return configuredSiteUrl.replace(/\/+$/, "");
-  }
-
-  return window.location.origin;
+  return configuredSiteUrl
+    ? configuredSiteUrl.replace(/\/+$/, "")
+    : window.location.origin;
 }
 
 export function AuthForm({ mode, role = "renter" }: AuthFormProps) {
@@ -33,6 +38,58 @@ export function AuthForm({ mode, role = "renter" }: AuthFormProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
+
+  function getDestination(accountRole: string) {
+    const requestedPath = searchParams.get("next");
+
+    if (
+      requestedPath &&
+      requestedPath.startsWith("/") &&
+      !requestedPath.startsWith("//")
+    ) {
+      return requestedPath;
+    }
+
+    return accountRole === "landlord"
+      ? "/landlord-dashboard"
+      : "/dashboard";
+  }
+
+  async function handleGoogleSignIn() {
+    setIsGoogleSubmitting(true);
+
+    const callbackUrl = new URL(`${getSiteOrigin()}/auth/callback`);
+    callbackUrl.searchParams.set("role", role);
+
+    const requestedPath = searchParams.get("next");
+    if (
+      requestedPath &&
+      requestedPath.startsWith("/") &&
+      !requestedPath.startsWith("//")
+    ) {
+      callbackUrl.searchParams.set("next", requestedPath);
+    }
+
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: callbackUrl.toString(),
+        queryParams: {
+          access_type: "offline",
+          prompt: "select_account",
+        },
+        data: {
+          role,
+        },
+      },
+    });
+
+    if (error) {
+      setIsGoogleSubmitting(false);
+      toast.error(error.message);
+    }
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -71,18 +128,8 @@ export function AuthForm({ mode, role = "renter" }: AuthFormProps) {
             .maybeSingle()
         ).data?.role ?? result.data.user?.user_metadata.role ?? "renter";
 
-    const requestedPath = searchParams.get("next");
-    const destination =
-      requestedPath &&
-      requestedPath.startsWith("/") &&
-      !requestedPath.startsWith("//")
-        ? requestedPath
-        : accountRole === "landlord"
-          ? "/landlord-dashboard"
-          : "/dashboard";
-
     toast.success(isSignup ? "Your Pact account is ready." : "Welcome back.");
-    router.push(destination);
+    router.push(getDestination(accountRole));
     router.refresh();
   }
 
@@ -103,6 +150,26 @@ export function AuthForm({ mode, role = "renter" }: AuthFormProps) {
             ? "Create your account and take the first step toward building your Canadian credit history."
             : "Sign in to manage your verified rent payments and Pact timeline."}
         </p>
+      </div>
+
+      <button
+        type="button"
+        onClick={handleGoogleSignIn}
+        disabled={isGoogleSubmitting || isSubmitting}
+        className="inline-flex w-full items-center justify-center gap-3 rounded-full border border-cream-300 bg-white px-5 py-3.5 font-bold text-ink-800 transition hover:border-teal-300 hover:text-teal-700 disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        {isGoogleSubmitting ? (
+          <Loader2 size={18} className="animate-spin" />
+        ) : (
+          <Chrome size={18} className="text-teal-700" />
+        )}
+        Continue with Google
+      </button>
+
+      <div className="my-6 flex items-center gap-3 text-xs font-bold uppercase tracking-[0.14em] text-ink-400">
+        <span className="h-px flex-1 bg-cream-200" />
+        or use email
+        <span className="h-px flex-1 bg-cream-200" />
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -161,7 +228,8 @@ export function AuthForm({ mode, role = "renter" }: AuthFormProps) {
         )}
 
         <button
-          disabled={isSubmitting}
+          type="submit"
+          disabled={isSubmitting || isGoogleSubmitting}
           className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-full bg-teal-600 px-5 py-3.5 font-bold text-white shadow-[0_8px_24px_rgba(21,154,140,0.2)] transition hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isSubmitting && <Loader2 size={18} className="animate-spin" />}
