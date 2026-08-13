@@ -87,24 +87,27 @@ export function BankConnectionForm() {
       return;
     }
 
+    const syncedAt = new Date().toISOString();
+
     const { data, error } = await supabase
       .from("bank_connections")
       .insert({
         tenant_id: userId,
         institution_name: values.institutionName,
-        connection_status: "pending",
+        connection_status: "connected",
+        last_synced_at: syncedAt,
       })
       .select("id, institution_name, connection_status, last_synced_at")
       .single();
 
     if (error) {
-      toast.error("We couldn’t start your bank connection. Please try again.");
+      toast.error("We couldn’t create the mock bank connection. Please try again.");
       return;
     }
 
     setConnections((current) => [data, ...current]);
     reset();
-    toast.success("Bank connection request started.");
+    toast.success("Mock bank connection created. A sample rent transaction was detected.");
   }
 
   if (isLoading) {
@@ -125,31 +128,31 @@ export function BankConnectionForm() {
           <Banknote size={26} />
         </div>
         <p className="mt-8 text-sm font-bold uppercase tracking-[0.16em] text-mustard-300">
-          Bank verification
+          Mock bank verification
         </p>
         <h1 className="mt-3 text-3xl font-bold tracking-[-0.05em]">
-          Connect the account that receives your rent activity.
+          Preview how automatic rent matching will work.
         </h1>
         <p className="mt-4 leading-7 text-teal-50/75">
-          Bank verification can make monthly rent checks simpler while keeping
-          your banking details private from landlords.
+          This demo simulates a bank connection and creates a sample monthly rent transaction.
+          No banking credentials are requested or transmitted.
         </p>
         <div className="mt-8 flex items-start gap-3 border-t border-white/15 pt-6 text-sm leading-6 text-teal-50/75">
           <ShieldCheck className="mt-0.5 shrink-0 text-mustard-300" size={18} />
-          Pact does not move money or share your bank credentials with landlords.
+          Mock matches still require landlord acceptance before a payment can be verified or reported.
         </div>
       </aside>
 
       <section className="rounded-[2rem] border border-cream-200 bg-white p-6 shadow-[0_16px_45px_rgba(44,54,48,0.06)] sm:p-8">
         <div className="mb-8">
           <p className="text-sm font-bold uppercase tracking-[0.16em] text-coral-500">
-            Secure setup
+            Demo connection
           </p>
           <h2 className="mt-3 text-3xl font-bold tracking-[-0.05em]">
-            Add a bank connection
+            Connect a sample institution
           </h2>
           <p className="mt-2 leading-7 text-ink-600">
-            Choose your institution to begin the verification setup.
+            Choose an institution to simulate a successful connection and transaction sync.
           </p>
         </div>
 
@@ -183,9 +186,8 @@ export function BankConnectionForm() {
           <div className="flex items-start gap-3 rounded-2xl bg-teal-50 p-4 text-sm leading-6 text-teal-950">
             <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-teal-600" />
             <p>
-              This starts a secure connection request. You will only be asked
-              for banking details through an approved provider when live
-              connection is enabled.
+              The mock sync will create a connected status with today’s sync time and display a
+              sample rent payment ready for landlord review.
             </p>
           </div>
 
@@ -195,35 +197,46 @@ export function BankConnectionForm() {
             className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-teal-600 px-5 py-3.5 font-bold text-white shadow-[0_8px_24px_rgba(21,154,140,0.2)] transition hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isSubmitting && <Loader2 size={18} className="animate-spin" />}
-            {isSubmitting ? "Starting connection..." : "Start bank connection"}
+            {isSubmitting ? "Creating mock connection..." : "Create mock connection"}
           </button>
         </form>
 
         {connections.length > 0 && (
           <div className="mt-10 border-t border-cream-200 pt-7">
-            <h3 className="text-xl font-bold">Your connections</h3>
+            <h3 className="text-xl font-bold">Connected institutions</h3>
             <div className="mt-4 space-y-3">
               {connections.map((connection) => (
                 <div
                   key={connection.id}
-                  className="flex flex-col gap-3 rounded-2xl bg-cream-50 p-4 sm:flex-row sm:items-center sm:justify-between"
+                  className="rounded-2xl bg-cream-50 p-4"
                 >
-                  <div className="flex items-center gap-3">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-teal-700">
-                      <Banknote size={19} />
-                    </span>
-                    <div>
-                      <p className="font-bold">{connection.institution_name}</p>
-                      <p className="text-sm text-ink-600">
-                        {connection.last_synced_at
-                          ? `Last synced ${new Date(connection.last_synced_at).toLocaleDateString("en-CA")}`
-                          : "Awaiting secure connection"}
-                      </p>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-center gap-3">
+                      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-teal-700">
+                        <Banknote size={19} />
+                      </span>
+                      <div>
+                        <p className="font-bold">{connection.institution_name}</p>
+                        <p className="text-sm text-ink-600">
+                          Last synced{" "}
+                          {connection.last_synced_at
+                            ? new Date(connection.last_synced_at).toLocaleDateString("en-CA")
+                            : "today"}
+                        </p>
+                      </div>
                     </div>
+                    <span className="w-fit rounded-full bg-teal-100 px-3 py-1.5 text-xs font-bold capitalize text-teal-800">
+                      {connection.connection_status}
+                    </span>
                   </div>
-                  <span className="w-fit rounded-full bg-mustard-100 px-3 py-1.5 text-xs font-bold capitalize text-ink-800">
-                    {connection.connection_status}
-                  </span>
+
+                  <div className="mt-4 flex items-center justify-between rounded-xl border border-teal-100 bg-white px-4 py-3">
+                    <div>
+                      <p className="text-sm font-bold">Sample rent transaction detected</p>
+                      <p className="mt-1 text-xs text-ink-600">Ready for landlord acceptance</p>
+                    </div>
+                    <CheckCircle2 size={20} className="text-teal-600" />
+                  </div>
                 </div>
               ))}
             </div>
